@@ -1,12 +1,18 @@
-version: '2'
+version: '3'
 services:
   test:
-    image: golang
-    working_dir: /go/src/github.com/gemnasium/logrus-postgresql-hook
+    image: golang:1.21-alpine
     volumes:
-      - $GOPATH:/go
-    command: sh -c 'go get -t -v ./... && go test -race -v ./...'
-    links:
+      - ./:/logrus-postgres-hook
+    working_dir: /logrus-postgres-hook
+    command: sh -c "go mod tidy && go install github.com/rakyll/gotest@latest && gotest -v -p 1 ./... -cover"
+    depends_on:
       - postgres
   postgres:
-    build: .
+    image: postgres:9-alpine
+    volumes:
+      - ./migrations/:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_PASSWORD=gigasecret
+    ports:
+      - 5432:5432

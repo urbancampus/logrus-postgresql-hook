@@ -16,7 +16,7 @@ import (
 )
 
 func TestHooks(t *testing.T) {
-	db, err := sql.Open("postgres", "user=postgres dbname=postgres host=postgres sslmode=disable")
+	db, err := sql.Open("postgres", "user=postgres dbname=postgres password=gigasecret host=postgres sslmode=disable")
 	if err != nil {
 		t.Fatal("Can't connect to postgresql test database:", err)
 	}
