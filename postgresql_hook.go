@@ -11,7 +11,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Set pglogrus.BufSize = <value> _before_ calling NewHook
+// BufSize sets the maximum size of the buffer.
+// Set this value BEFORE calling NewHook.
 // Once the buffer is full, logging will start blocking, waiting for slots to
 // be available in the queue.
 var BufSize uint = 8192
@@ -25,6 +26,7 @@ type Hook struct {
 	filters    []filter
 }
 
+// AsyncHook is the struct representing an asynchronous hook
 type AsyncHook struct {
 	*Hook
 	buf        chan *logrus.Entry
@@ -83,6 +85,7 @@ func NewAsyncHook(db *sql.DB, extra map[string]interface{}) *AsyncHook {
 	return hook
 }
 
+// Fire calls hook.InsertFunc to insert the entry on DB
 func (hook *Hook) Fire(entry *logrus.Entry) error {
 	newEntry := hook.newEntry(entry)
 	if newEntry == nil {
@@ -180,9 +183,8 @@ func (hook *AsyncHook) Flush() {
 	<-hook.flush
 }
 
-// LoopDuration sets the internal hook ticker.
+// FlushEvery sets the internal hook ticker to d time.Duration .
 // Every duration d, the hook will send the queued logs to the DB.
-// The default loop duration is 1 second.
 func (hook *AsyncHook) FlushEvery(d time.Duration) {
 	hook.newTicker <- time.NewTicker(d)
 }
@@ -195,10 +197,7 @@ func (hook *AsyncHook) fire() {
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "[pglogrus] Can't create db transaction:", err)
 			// Don't create new transactions too fast, it will flood stderr
-			select {
-			case <-hook.ticker.C:
-				continue
-			}
+			<-hook.ticker.C
 		}
 
 		var numEntries int
@@ -240,11 +239,12 @@ func (hook *AsyncHook) fire() {
 	}
 }
 
+// Close closes db connecttion
 func (hook *Hook) Close() error {
 	return hook.db.Close()
 }
 
-//AddFilter adds filter that can modify or ignore entry.
+// AddFilter adds filter that can modify or ignore entry.
 func (hook *Hook) AddFilter(fn filter) {
 	hook.filters = append(hook.filters, fn)
 }

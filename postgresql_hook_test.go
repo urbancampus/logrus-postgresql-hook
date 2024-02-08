@@ -3,7 +3,7 @@ package pglogrus
 import (
 	"database/sql"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"reflect"
 	"runtime"
 	"sync"
@@ -43,7 +43,7 @@ func TestHooks(t *testing.T) {
 			})
 
 			log := logrus.New()
-			log.Out = ioutil.Discard
+			log.Out = io.Discard
 			log.Level = logrus.DebugLevel
 			log.Hooks.Add(hook)
 
