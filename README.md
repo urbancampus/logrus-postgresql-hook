@@ -133,6 +133,6 @@ func main() {
 
 ## Run tests
 
-Since this hook is hitting a DB, we're testing again a real PostgreSQL server:
+Since this hook is hitting a DB, we're testing against a real PostgreSQL server:
 
     docker-compose run --rm test
